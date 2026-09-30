@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solicitação de Acesso</title>
+    <style>
+      :root {
+        --primary: #0f172a;
+        --primary-light: #1e293b;
+        --accent: #2563eb;
+        --accent-dark: #1d4ed8;
+        --success: #16a34a;
+        --danger: #dc2626;
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #d1d5db;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, #e0f2fe 0%, var(--bg) 100%);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 500px;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+        padding: 32px 28px;
+      }
+
+      h1 {
+        margin: 0 0 24px;
+        font-size: clamp(1.8rem, 4vw, 2.3rem);
+        text-align: center;
+        color: var(--primary);
+      }
+
+      .field {
+        margin-bottom: 18px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: var(--primary-light);
+      }
+
+      input {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      }
+
+      .error-message {
+        display: none;
+        margin-top: 6px;
+        color: var(--danger);
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .submit-btn {
+        width: 100%;
+        border: none;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 14px 18px;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .submit-btn:hover {
+        background: var(--accent-dark);
+      }
+
+      .submit-btn:active {
+        transform: translateY(1px);
+      }
+
+      .loading {
+        text-align: center;
+        margin-top: 16px;
+        color: var(--primary-light);
+        font-weight: 700;
+        display: none;
+      }
+
+      .success-message {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 10px;
+        background: rgba(22, 163, 74, 0.12);
+        color: var(--success);
+        border: 1px solid rgba(22, 163, 74, 0.3);
+        font-weight: 700;
+        display: none;
+        text-align: center;
+      }
+
+      @media (max-width: 480px) {
+        .card {
+          padding: 24px 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Solicitar Acesso</h1>
+
+        <form id="cronogramaForm" novalidate>
+          <div class="field">
+            <label for="name">Nome</label>
+            <input id="name" name="name" type="text" placeholder="Digite seu nome" />
+            <div id="nameError" class="error-message"></div>
+          </div>
+
+          <div class="field">
+            <label for="city">Cidade</label>
+            <input id="city" name="city" type="text" placeholder="Digite sua cidade" />
+            <div id="cityError" class="error-message"></div>
+          </div>
+
+          <div class="field">
+            <label for="phone">Telefone</label>
+            <input id="phone" name="phone" type="tel" placeholder="(00) 00000-0000" />
+            <div id="phoneError" class="error-message"></div>
+          </div>
+
+          <button type="submit" class="submit-btn">Enviar</button>
+        </form>
+
+        <div id="loading" class="loading">Processando...</div>
+        <div id="successMessage" class="success-message">Dados enviados com sucesso!</div>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('cronogramaForm');
+      const loading = document.getElementById('loading');
+      const successMessage = document.getElementById('successMessage');
+      const nameInput = document.getElementById('name');
+      const cityInput = document.getElementById('city');
+      const phoneInput = document.getElementById('phone');
+
+      function showError(id, message) {
+        const el = document.getElementById(id);
+        if (message) {
+          el.textContent = message;
+          el.style.display = 'block';
+        } else {
+          el.textContent = '';
+          el.style.display = 'none';
+        }
+      }
+
+      function validateName(name) {
+        if (!name) return 'Informe seu nome.';
+        if (name.length < 2) return 'Nome muito curto.';
+        return '';
+      }
+
+      function validateCity(city) {
+        if (!city) return 'Informe sua cidade.';
+        if (city.length < 2) return 'Cidade inválida.';
+        return '';
+      }
+
+      function validatePhone(phone) {
+        const digits = phone.replace(/\D/g, '');
+        if (!phone.trim()) return 'Informe seu telefone.';
+        if (digits.length < 10) return 'Telefone inválido.';
+        return '';
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const name = nameInput.value.trim();
+        const city = cityInput.value.trim();
+        const phone = phoneInput.value.trim();
+
+        const nameError = validateName(name);
+        const cityError = validateCity(city);
+        const phoneError = validatePhone(phone);
+
+        showError('nameError', nameError);
+        showError('cityError', cityError);
+        showError('phoneError', phoneError);
+
+        if (nameError || cityError || phoneError) return;
+
+        loading.style.display = 'block';
+        form.style.opacity = '0.6';
+        form.style.pointerEvents = 'none';
+
+        setTimeout(() => {
+          const userData = {
+            name,
+            city,
+            phone,
+            accessDate: new Date().toLocaleString('pt-BR')
+          };
+
+          localStorage.setItem('cronogramaAccess', JSON.stringify(userData));
+
+          window.open(
+            'https://drive.google.com/file/d/1ytk_RTqJd7eO2Z0RDNafuC1PjE8e4bmS/view?usp=drivesdk',
+            '_blank',
+            'noopener,noreferrer'
+          );
+
+          loading.style.display = 'none';
+          form.style.opacity = '1';
+          form.style.pointerEvents = 'auto';
+          successMessage.style.display = 'block';
+          form.reset();
+        }, 1500);
+      });
+    </script>
+  </body>
+</html>
